@@ -1,0 +1,203 @@
+import datetime
+import discord
+from discord.ext import commands
+import gspreaddiscord.py
+gspread
+import datetime
+import discord
+from discord.ext import commands
+import gspread
+
+# الاتصال المباشر بجدول البيانات
+gc = gspread.no_credentials()
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1jcaGs6K58zdqVBZOpd9gCbvqU9TCjauvVhGf_uR93Ks/edit?gid=0#gid=0"
+
+try:
+  sh = gc.open_by_url(SPREADSHEET_URL)
+  sheet = sh.worksheet("EMS")
+  print("✅ تم الاتصال بجدول البيانات بنجاح!")
+except Exception as e:
+  print(f"❌ خطأ في الاتصال بالجدول: {e}")
+
+# إعدادات ديسكورد
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+# ⚠️ [هنا ضع أيدي روم الجرد حقك بدل الأرقام التالية]
+TARGET_CHANNEL_ID = 123456789012345678
+
+
+@bot.event
+async def on_ready():
+  print(f"🤖 البوت اشتغل وصار متصل باسم: {bot.user.name}")
+
+
+@bot.command(name="جرد")
+async def check_inventory(ctx):
+  await ctx.send(
+      "🔍 جاري جلب السجلات وفحص آخر 3000 رسالة في روم الجرد، انتظر ثواني..."
+  )
+
+  channel = bot.get_channel(TARGET_CHANNEL_ID)
+  if not channel:
+    await ctx.send("❌ ما لقيت روم الجرد! تأكد من الأيدي اللي حطيته بالكود.")
+    return
+
+  try:
+    records = sheet.get_all_records()
+  except Exception as e:
+    await ctx.send(f"❌ صار خطأ وأنا أقرا الجدول: {e}")
+    return
+
+  now = datetime.datetime.now(datetime.timezone.utc)
+  inactive_users = []
+
+  messages = []
+  try:
+    async for message in channel.history(limit=3000):
+      messages.append(message)
+  except Exception as e:
+    await ctx.send(f"❌ ما قدرت أقرأ رسائل الروم: {e}")
+    return
+
+  for row in records:
+    name_to_check = row.get("Character Name") or row.get("Discord Name")
+    if not name_to_check:
+      continue
+
+    last_interaction = None
+    for msg in messages:
+      if (
+          name_to_check.lower() in msg.content.lower()
+          or (msg.author.nick and name_to_check.lower() in msg.author.nick.lower())
+          or name_to_check.lower() in msg.author.name.lower()
+      ):
+        last_interaction = msg.created_at
+        break
+
+    if last_interaction:
+      delta = now - last_interaction
+      if delta.days > 7:
+        inactive_users.append(f"• {name_to_check} (آخر تفاعل قبل {delta.days} يوم)")
+    else:
+      inactive_users.append(
+          f"• {name_to_check} (ما لقيت له أي تسجيل ضمن آخر 3000 رسالة)"
+      )
+
+  if inactive_users:
+    chunk = ""
+    await ctx.send(
+        "**الأسماء اللي تجاوزوا 7 أيام بدون تسجيل أو ما سجلوا نهائياً:**"
+    )
+    for user in inactive_users:
+      if len(chunk) + len(user) + 1 > 1900:
+        await ctx.send(chunk)
+        chunk = ""
+      chunk += user + "\n"
+    if chunk:
+      await ctx.send(chunk)
+  else:
+    await ctx.send("✅ الكل مسجل حضورهم قبل أقل من 7 أيام، ما فيه غياب!")
+
+
+# ⚠️ [هنا ضع توكن بوتك بين علامتي التنصيص بدلاً من النص التجريبي]
+bot.run("MTU1NDkwMzM0NTcwODQwNDg5Ng.GrWTXI.X5As1BlGZaXvVbK6YqkUkRNMf_LyUojXPYmjXw")
+
+# الاتصال المباشر بجدول البيانات
+gc = gspread.no_credentials()
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1jcaGs6K58zdqVBZOpd9gCbvqU9TCjauvVhGf_uR93Ks/edit?gid=0#gid=0"
+
+try:
+  sh = gc.open_by_url(SPREADSHEET_URL)
+  sheet = sh.worksheet("EMS")
+  print("✅ تم الاتصال بجدول البيانات بنجاح!")
+except Exception as e:
+  print(f"❌ خطأ في الاتصال بالجدول: {e}")
+
+# إعدادات ديسكورد
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+# ⚠️ [هنا ضع أيدي روم الجرد حقك بدل الأرقام التالية]
+TARGET_CHANNEL_ID = 123456789012345678
+
+
+@bot.event
+async def on_ready():
+  print(f"🤖 البوت اشتغل وصار متصل باسم: {bot.user.name}")
+
+
+@bot.command(name="جرد")
+async def check_inventory(ctx):
+  await ctx.send(
+      "🔍 جاري جلب السجلات وفحص آخر 3000 رسالة في روم الجرد، انتظر ثواني..."
+  )
+
+  channel = bot.get_channel(TARGET_CHANNEL_ID)
+  if not channel:
+    await ctx.send("❌ ما لقيت روم الجرد! تأكد من الأيدي اللي حطيته بالكود.")
+    return
+
+  try:
+    records = sheet.get_all_records()
+  except Exception as e:
+    await ctx.send(f"❌ صار خطأ وأنا أقرا الجدول: {e}")
+    return
+
+  now = datetime.datetime.now(datetime.timezone.utc)
+  inactive_users = []
+
+  messages = []
+  try:
+    async for message in channel.history(limit=3000):
+      messages.append(message)
+  except Exception as e:
+    await ctx.send(f"❌ ما قدرت أقرأ رسائل الروم: {e}")
+    return
+
+  for row in records:
+    name_to_check = row.get("Character Name") or row.get("Discord Name")
+    if not name_to_check:
+      continue
+
+    last_interaction = None
+    for msg in messages:
+      if (
+          name_to_check.lower() in msg.content.lower()
+          or (msg.author.nick and name_to_check.lower() in msg.author.nick.lower())
+          or name_to_check.lower() in msg.author.name.lower()
+      ):
+        last_interaction = msg.created_at
+        break
+
+    if last_interaction:
+      delta = now - last_interaction
+      if delta.days > 7:
+        inactive_users.append(f"• {name_to_check} (آخر تفاعل قبل {delta.days} يوم)")
+    else:
+      inactive_users.append(
+          f"• {name_to_check} (ما لقيت له أي تسجيل ضمن آخر 3000 رسالة)"
+      )
+
+  if inactive_users:
+    chunk = ""
+    await ctx.send(
+        "**الأسماء اللي تجاوزوا 7 أيام بدون تسجيل أو ما سجلوا نهائياً:**"
+    )
+    for user in inactive_users:
+      if len(chunk) + len(user) + 1 > 1900:
+        await ctx.send(chunk)
+        chunk = ""
+      chunk += user + "\n"
+    if chunk:
+      await ctx.send(chunk)
+  else:
+    await ctx.send("✅ الكل مسجل حضورهم قبل أقل من 7 أيام، ما فيه غياب!")
+
+
+# ⚠️ [هنا ضع توكن بوتك بين علامتي التنصيص بدلاً من النص التجريبي]
+bot.run("MTU1NDkwMzM0NTcwODQwNDg5Ng.GrWTXI.X5As1BlGZaXvVbK6YqkUkRNMf_LyUojXPYmjXw")
+discord.py
+gspread
